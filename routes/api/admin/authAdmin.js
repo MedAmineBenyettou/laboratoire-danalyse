@@ -1,31 +1,31 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../../middlewares/auth');
+const authAdmin = require('../../../middlewares/authAdmin');
 const { check, validationResult } = require('express-validator');
 const jwt = require('jsonwebtoken');
-const User = require('../../models/User');
+const Admin = require('../../../models/Admin');
 const bc = require('bcryptjs');
 
-// @route   GET api/auth
-// @desc    Get current user
+// @route   GET api/admin/auth
+// @desc    Get current admin
 // @access  Private
-router.get('/', auth, async (req, res) => {
+router.get('/', authAdmin, async (req, res) => {
  try {
-  const user = await User.findById(req.user.id).select('-password');
-  return res.json(user);
+  const admin = await Admin.findById(req.admin.id).select('-password');
+  return res.json(admin);
  } catch (err) {
   console.error(err.message);
   return res.status(500).send('Server Error');
  }
 });
 
-// @route   POST api/auth
-// @desc    Authenticate user & get token
+// @route   POST api/admin/auth
+// @desc    Authenticate admin & get token
 // @access  Public
 router.post(
  '/',
  [
-  check('email', 'Veuillez inclure un e-mail valide').isEmail(),
+  check('username', 'Veuillez inclure un e-mail valide').notEmpty(),
   check('password', 'Mot de passe requis').exists(),
  ],
  async (req, res) => {
@@ -34,17 +34,17 @@ router.post(
    return res.status(400).json({ errors: errors.array() });
   }
 
-  const { email, password } = req.body;
+  const { username, password } = req.body;
   try {
-   let user = await User.findOne({ email });
+   let admin = await Admin.findOne({ username });
 
-   if (!user) {
+   if (!admin) {
     return res.status(400).json({
      errors: [{ msg: "Les informations d'identification sont invalides" }],
     });
    }
 
-   const isMatch = await bc.compare(password, user.password);
+   const isMatch = await bc.compare(password, admin.password);
 
    if (!isMatch) {
     return res.status(400).json({
@@ -53,8 +53,8 @@ router.post(
    }
    // JWT
    const payload = {
-    user: {
-     id: user.id,
+    admin: {
+     id: admin.id,
     },
    };
 
@@ -68,7 +68,7 @@ router.post(
     }
    );
 
-   await user.save();
+   await admin.save();
   } catch (err) {
    console.error(err.message);
    return res.status(500).json('Server Error');
