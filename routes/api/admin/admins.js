@@ -2,6 +2,7 @@ const express = require('express');
 const bc = require('bcryptjs');
 const { check, validationResult } = require('express-validator');
 const Admin = require('../../../models/Admin');
+const authAdmin = require('../../../middlewares/authAdmin');
 
 // =======  ======= ========    ======  =====
 

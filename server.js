@@ -17,7 +17,7 @@ app.use('/api/auth', require('./routes/api/auth'));
 //app.use('/api/profile', require('./routes/api/profile'));
 
 //* For Admins:
-app.use('/api/admin/auth', require('./routes/api/admin/auth'));
+app.use('/api/admin/auth', require('./routes/api/admin/authAdmin'));
 app.use('/api/admin/admins', require('./routes/api/admin/admins'));
 
 const PORT = process.env.PORT || 5000;
