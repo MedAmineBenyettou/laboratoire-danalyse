@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 module.exports = function (req, res, next) {
  // Get Token from Header
- const token = req.header('x-auth-admin-token');
+ const token = req.header('x-admin-auth-token');
 
  // Check if no Token
  if (!token) {
@@ -11,7 +11,7 @@ module.exports = function (req, res, next) {
 
  // Verify
  try {
-  const decoded = jwt.verify(token, process.env.JWTsecret);
+  const decoded = jwt.verify(token, process.env.JWT_secret);
 
   req.admin = decoded.admin;
   next();

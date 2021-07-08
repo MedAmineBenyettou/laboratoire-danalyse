@@ -1,6 +1,6 @@
 const express = require('express');
 const Profile = require('../../models/UserProfile');
-const auth = require('../../middleware/auth');
+const auth = require('../../middlewares/auth');
 const { check, validationResult } = require('express-validator');
 const router = express.Router();
 
@@ -41,7 +41,7 @@ router.post(
   ],
  ],
  async (req, res) => {
-  const errors = validationResult(req).array();
+  const errors = validationResult(req);
   if (!errors.isEmpty()) {
    return res.status(400).json({ errors: errors.array() });
   }
@@ -53,7 +53,7 @@ router.post(
   profileFields.user = req.user.id;
   profileFields.prenom = prenom;
   profileFields.nom = nom;
-  profileFields.dateOfBirth = dateOfBirth;
+  profileFields.dateOfBirth = Date(dateOfBirth);
   profileFields.birthLocation = birthLocation;
   profileFields.adresse = adresse;
   profileFields.phoneNumber = phoneNumber;
@@ -61,7 +61,9 @@ router.post(
   try {
    let profile = await Profile.findOne({ user: req.user.id });
    if (profile) {
-    throw new Error('Profile already exists...');
+    return res
+     .status(203)
+     .json({ errors: [{ msg: 'Profile already exists...' }] });
    }
 
    // Create
