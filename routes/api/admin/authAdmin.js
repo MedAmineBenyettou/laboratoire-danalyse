@@ -12,10 +12,53 @@ const bc = require('bcryptjs');
 router.get('/', authAdmin, async (req, res) => {
  try {
   const admin = await Admin.findById(req.admin.id).select('-password');
+  if (!admin)
+   res.status(404).json({ errors: [{ msg: 'Utilisateur non trouvé' }] });
   return res.json(admin);
  } catch (err) {
   console.error(err.message);
-  return res.status(500).send('Server Error');
+  return res.status(500).send('Erreur du serveur');
+ }
+});
+
+// @route   PUT api/admin/auth
+// @desc    Update current admin
+// @access  Private
+router.put('/', authAdmin, async (req, res) => {
+ try {
+  var admin = await Admin.findById(req.admin.id).select('-password');
+  if (!admin)
+   res.status(404).json({ errors: [{ msg: 'Utilisateur non trouvé' }] });
+  const { username, password } = req.body;
+  // Build Profile object
+  const authFields = {};
+  if (username) {
+   admin = await Admin.findOne({ username });
+   if (admin)
+    return res.status(400).json({
+     errors: [
+      { msg: "Un utilisateur avec le meme 'Nom d'utilisateur' existe deja" },
+     ],
+    });
+   authFields.username = username;
+  }
+  if (password) {
+   if (password.length >= 6) authFields.password = password;
+   else
+    res.status(400).json({
+     errors: [{ msg: 'Mot de passe doit contenir 6 caractères ou plus' }],
+    });
+  }
+  admin = await Admin.findByIdAndUpdate(
+   req.admin.id,
+   { $set: authFields },
+   { new: true }
+  ).select('-password');
+  console.log(authFields, admin);
+  return res.json(admin);
+ } catch (err) {
+  console.error(err.message);
+  return res.status(500).send('Erreur du serveur');
  }
 });
 
@@ -64,7 +107,7 @@ router.post(
     { expiresIn: process.env.Token_Expiration },
     (err, token) => {
      if (err) throw err;
-     return res.json({token});
+     return res.json({ token });
     }
    );
 

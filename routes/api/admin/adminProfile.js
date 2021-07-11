@@ -62,7 +62,6 @@ router.put('/', [auth], async (req, res) => {
 
  // Build Profile object
  const profileFields = {};
- profileFields.user = req.admin.id;
 
  if (prenom) profileFields.prenom = prenom;
  if (nom) profileFields.nom = nom;
