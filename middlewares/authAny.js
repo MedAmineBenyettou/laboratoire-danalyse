@@ -11,8 +11,9 @@ module.exports = function (req, res, next) {
  } else {
   // Verify
   try {
+   const token = token1 || token2;
    const decoded = jwt.verify(token, process.env.JWT_secret);
-   req.user = token1 ? decoded.user : decoded.admin;
+   req.user = decoded.user ? decoded.user : decoded.admin;
 
    next();
   } catch (err) {
