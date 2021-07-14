@@ -8,6 +8,7 @@ const GeneSchema = new mongoose.Schema({
  },
  description: {
   type: String,
+  default: '',
  },
  date: {
   type: Date,

@@ -9,6 +9,7 @@ const AnalyseTypeSchema = new mongoose.Schema({
  },
  description: {
   type: String,
+  default: '',
  },
  genes: [GeneSchema],
  date: {
