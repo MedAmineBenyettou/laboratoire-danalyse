@@ -1,43 +1,42 @@
 const express = require('express');
-const AnalyseType = require('../../models/AnalyseType');
-const authAdmin = require('../../middlewares/authAdmin');
-const authAny = require('../../middlewares/authAny');
+const { Gene } = require('../../../models/Gene');
+const authAdmin = require('../../../middlewares/authAdmin');
+const authAny = require('../../../middlewares/authAny');
 const { check, validationResult } = require('express-validator');
 const router = express.Router();
 
-// @route   POST api/analyseTypes
-// @desc    Creates a type
+// @route   POST api/admin/genes
+// @desc    Creates a gene
 // @access  Private
 router.post(
  '/',
  authAdmin,
- [[check('nom', 'Un nom est requis').not().isEmpty()]],
+ [[check('nom', 'Un nom pour le gêne est requis').not().isEmpty()]],
  async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
    return res.status(400).json({ errors: errors.array() });
   }
 
-  const { nom, description, genes } = req.body;
+  const { nom, description } = req.body;
 
   // Build object
   const fields = {};
   fields.nom = nom;
   if (description) fields.description = description;
-  if (genes) fields.genes = genes;
 
   try {
-   let analyseType = await AnalyseType.findOne({ nom });
-   if (analyseType) {
+   let gene = await Gene.findOne({ nom });
+   if (gene) {
     return res
      .status(203)
-     .json({ errors: [{ msg: "Ce type d'analyse existe deja." }] });
+     .json({ errors: [{ msg: 'Ce type de gêne existe deja.' }] });
    }
 
    // Create
-   analyseType = new AnalyseType(fields);
-   await analyseType.save();
-   return res.json(analyseType);
+   gene = new Gene(fields);
+   await gene.save();
+   return res.json(gene);
   } catch (err) {
    console.error(err.message);
    res.status(500).send('Erreur de serveur');
@@ -45,45 +44,44 @@ router.post(
  }
 );
 
-// @route   POST api/analyseTypes/:id
-// @desc    Updates a type
+// @route   POST api/admin/genes/:id
+// @desc    Updates a gene
 // @access  Private
 router.put('/', authAdmin, async (req, res) => {
- const { nom, description, genes } = req.body;
+ const { nom, description } = req.body;
 
  // Build object
  const fields = {};
  if (nom) fields.nom = nom;
  if (description) fields.description = description;
- if (genes) fields.genes = genes;
 
  try {
-  let analyseType = await AnalyseType.findOne({ nom });
-  if (analyseType) {
+  let gene = await Gene.findOne({ nom });
+  if (gene) {
    return res
     .status(203)
-    .json({ errors: [{ msg: "Ce type d'analyse existe deja." }] });
+    .json({ errors: [{ msg: 'Ce type de gene existe deja.' }] });
   }
 
   // Update
-  analyseType = await AnalyseType.findByIdAndUpdate(
+  gene = await Gene.findByIdAndUpdate(
    req.params.id,
    { $set: fields },
    { new: true }
   );
-  return res.json(analyseType);
+  return res.json(gene);
  } catch (err) {
   console.error(err.message);
   res.status(500).send('Erreur de serveur');
  }
 });
 
-// @route   GET api/analyseTypes
-// @desc    Get all types
+// @route   GET api/admin/genes
+// @desc    Get all genes
 // @access  Private
 router.get('/', authAny, async (req, res) => {
  try {
-  let types = await AnalyseType.find();
+  let types = await Gene.find();
   if (!types) {
    return res.status(500).send('Erreur de serveur');
   }

@@ -21,6 +21,7 @@ app.use('/api/analyseTypes', require('./routes/api/analyseTypes'));
 app.use('/api/admin/auth', require('./routes/api/admin/authAdmin'));
 app.use('/api/admin/profile', require('./routes/api/admin/adminProfile'));
 app.use('/api/admin/admins', require('./routes/api/admin/admins'));
+app.use('/api/admin/genes', require('./routes/api/admin/genes'));
 
 const PORT = process.env.PORT || 5000;
 

@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
-const { GeneSchema, Gene } = require('./Gene');
 
-const AnalyseTypeSchema = new mongoose.Schema({
+const GeneSchema = new mongoose.Schema({
  nom: {
   type: String,
   required: [true, 'Un nom est requis'],
@@ -10,11 +9,12 @@ const AnalyseTypeSchema = new mongoose.Schema({
  description: {
   type: String,
  },
- genes: [GeneSchema],
  date: {
   type: Date,
   default: Date.now,
  },
 });
 
-module.exports = AnalyseType = mongoose.model('analyseType', AnalyseTypeSchema);
+const Gene = mongoose.model('gene', GeneSchema);
+
+module.exports = { Gene, GeneSchema };
