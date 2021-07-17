@@ -39,7 +39,7 @@ router.post(
    return res.json(gene);
   } catch (err) {
    console.error(err.message);
-   res.status(500).send('Erreur de serveur');
+   return res.status(500).send({ msg: 'Erreur de serveur' });
   }
  }
 );
@@ -72,7 +72,7 @@ router.put('/', authAdmin, async (req, res) => {
   return res.json(gene);
  } catch (err) {
   console.error(err.message);
-  res.status(500).send('Erreur de serveur');
+  return res.status(500).send({ msg: 'Erreur de serveur' });
  }
 });
 
@@ -82,13 +82,12 @@ router.put('/', authAdmin, async (req, res) => {
 router.get('/', authAny, async (req, res) => {
  try {
   let types = await Gene.find();
-  if (!types) {
-   return res.status(500).send('Erreur de serveur');
-  }
+  if (!types) return res.json([]);
+
   return res.json(types);
  } catch (err) {
   console.error(err.message);
-  return res.status(500).send('Erreur de serveur');
+  return res.status(500).send({ msg: 'Erreur de serveur' });
  }
 });
 
