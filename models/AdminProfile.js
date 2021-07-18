@@ -17,7 +17,7 @@ const AdminProfileSchema = new mongoose.Schema({
   type: String,
  },
  phoneNumber: {
-  type: mongoose.Schema.Types.Number,
+  type: String,
  },
  date: {
   type: Date,

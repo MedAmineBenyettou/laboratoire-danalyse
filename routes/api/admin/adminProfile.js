@@ -2,6 +2,7 @@ const express = require('express');
 const Profile = require('../../../models/AdminProfile');
 const auth = require('../../../middlewares/authAdmin');
 const { check, validationResult } = require('express-validator');
+const Admin = require('../../../models/Admin');
 const router = express.Router();
 
 // @route   GET api/admin/profile/me
@@ -54,6 +55,38 @@ router.post('/', auth, async (req, res) => {
  }
 });
 
+// @route   POST api/admin/profile/:id
+// @desc    Create user profile
+// @access  Private
+router.post('/:id', auth, async (req, res) => {
+ const { prenom, nom, phoneNumber, fonction } = req.body;
+ // Build Profile object
+ const profileFields = {};
+ profileFields.user = req.params.id;
+ if (prenom) profileFields.prenom = prenom;
+ if (nom) profileFields.nom = nom;
+ if (phoneNumber) profileFields.phoneNumber = phoneNumber;
+ if (fonction) profileFields.fonction = fonction;
+
+ try {
+  let profile = await Profile.findOne({ user: profileFields.user });
+  if (profile) {
+   return res
+    .status(203)
+    .json({ errors: [{ msg: 'Profile already exists...' }] });
+  }
+
+  // Create
+  profile = new Profile(profileFields);
+  await profile.save();
+  let profiles = await Profile.find().populate('user', ['username']);
+  return res.json(profiles);
+ } catch (err) {
+  console.error(err.message);
+  res.status(500).send('Erreur du serveur');
+ }
+});
+
 // @route   PUT api/admin/profile
 // @desc    Update user profile
 // @access  Private
@@ -83,6 +116,46 @@ router.put('/', [auth], async (req, res) => {
   // new user error
   throw new Error({ message: 'Aucun utilisateur trouvé...' });
  } catch (err) {
+  console.error(err.message);
+  res.status(500).send('Erreur de serveur');
+ }
+});
+
+// @route   PUT api/admin/profile/:id
+// @desc    Update user profile
+// @access  Private
+router.put('/:id', [auth], async (req, res) => {
+ const { prenom, nom, phoneNumber, fonction, user } = req.body;
+
+ // Build Profile object
+ const profileFields = {};
+ if (prenom) profileFields.prenom = prenom;
+ if (nom) profileFields.nom = nom;
+ if (phoneNumber) profileFields.phoneNumber = phoneNumber;
+ if (fonction) profileFields.fonction = fonction;
+
+ try {
+  let profile = await Profile.findById(req.params.id);
+  if (profile) {
+   //! Update
+   await Admin.findOneAndUpdate(
+    { user: profile.user },
+    { $set: user },
+    { new: true }
+   );
+   profile = await Profile.findByIdAndUpdate(
+    req.params.id,
+    { $set: profileFields },
+    { new: true }
+   );
+   let profiles = await Profile.find().populate('user', ['username']);
+   return res.json(profiles);
+  }
+
+  // new user error
+  throw new Error({ message: 'Aucun utilisateur trouvé...' });
+ } catch (err) {
+  // console.error(err);
   console.error(err.message);
   res.status(500).send('Erreur de serveur');
  }

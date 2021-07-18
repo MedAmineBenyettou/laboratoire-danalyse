@@ -8,7 +8,7 @@ const authAdmin = require('../../../middlewares/authAdmin');
 
 const router = express.Router();
 
-// @route   POST api/admin
+// @route   POST api/admin/admins
 // @desc    Register Admin
 // @access  Private
 router.post(
@@ -31,7 +31,7 @@ router.post(
   try {
    let admin = await Admin.findOne({ username });
 
-   if (user) {
+   if (admin) {
     return res
      .status(400)
      .json({ errors: [{ msg: "Nom d'utilisateur déjà utilisé" }] });
@@ -48,9 +48,8 @@ router.post(
 
    await admin.save();
 
-   var final = admin.toObject();
-   delete final.password;
-   return res.json(final);
+   const admins = await Admin.find().select('-password');
+   return res.json(admins);
   } catch (err) {
    console.error(err.message);
    return res.status(500).json('Server Error');
