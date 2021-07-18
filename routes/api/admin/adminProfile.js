@@ -1,9 +1,9 @@
 const express = require('express');
 const Profile = require('../../../models/AdminProfile');
 const auth = require('../../../middlewares/authAdmin');
-const { check, validationResult } = require('express-validator');
 const Admin = require('../../../models/Admin');
 const router = express.Router();
+const bc = require('bcryptjs');
 
 // @route   GET api/admin/profile/me
 // @desc    Get current user's profile
@@ -12,7 +12,7 @@ router.get('/me', auth, async (req, res) => {
  try {
   var profile = await Profile.findOne({
    user: req.admin.id,
-  }).populate('user', ['username']);
+  }).populate('user', ['username', 'isEnabled']);
   if (!profile) {
    profile = new Profile({ user: req.admin.id });
    await profile.save();
@@ -79,7 +79,10 @@ router.post('/:id', auth, async (req, res) => {
   // Create
   profile = new Profile(profileFields);
   await profile.save();
-  let profiles = await Profile.find().populate('user', ['username']);
+  let profiles = await Profile.find().populate('user', [
+   'username',
+   'isEnabled',
+  ]);
   return res.json(profiles);
  } catch (err) {
   console.error(err.message);
@@ -109,7 +112,7 @@ router.put('/', [auth], async (req, res) => {
     { user: req.admin.id },
     { $set: profileFields },
     { new: true }
-   ).populate('user', ['username']);
+   ).populate('user', ['username', 'isEnabled']);
    return res.json(profile);
   }
 
@@ -137,23 +140,44 @@ router.put('/:id', [auth], async (req, res) => {
  try {
   let profile = await Profile.findById(req.params.id);
   if (profile) {
+   console.log(user);
    //! Update
-   await Admin.findOneAndUpdate(
-    { user: profile.user },
-    { $set: user },
-    { new: true }
-   );
+   if (user.username) {
+    var admin = await Admin.findOne({ username: user.username });
+    if (admin)
+     return res.status(404).json({
+      errors: [
+       { msg: "Un utilisateur avec le meme 'nom d'utilisateur' existe deja" },
+      ],
+     });
+   }
+   if (user.password) {
+    if (user.password.length >= 6) {
+     const salt = await bc.genSalt(10);
+     user.password = await bc.hash(user.password, salt);
+    } else {
+     return res.status(400).json({
+      errors: [{ msg: 'Mot de passe doit contenir 6 caractères ou plus' }],
+     });
+    }
+   }
+   console.log(user);
+   await Admin.findByIdAndUpdate(profile.user, { $set: user }, { new: true });
    profile = await Profile.findByIdAndUpdate(
     req.params.id,
     { $set: profileFields },
     { new: true }
    );
-   let profiles = await Profile.find().populate('user', ['username']);
+   let profiles = await Profile.find().populate('user', [
+    'username',
+    'isEnabled',
+   ]);
    return res.json(profiles);
   }
 
-  // new user error
-  throw new Error({ message: 'Aucun utilisateur trouvé...' });
+  return res.status(404).json({
+   errors: [{ msg: 'Aucun utilisateur trouvé' }],
+  });
  } catch (err) {
   // console.error(err);
   console.error(err.message);
@@ -166,7 +190,10 @@ router.put('/:id', [auth], async (req, res) => {
 // @access  Private
 router.get('/', auth, async (req, res) => {
  try {
-  let profiles = await Profile.find().populate('user', ['username']);
+  let profiles = await Profile.find().populate('user', [
+   'username',
+   'isEnabled',
+  ]);
   if (!profiles) {
    return res.status(500).send('Erreur du serveur');
   }
@@ -183,7 +210,7 @@ router.get('/', auth, async (req, res) => {
 router.get('/:user_id', auth, async (req, res) => {
  try {
   const profile = await Profile.findOne({ user: req.params.user_id })
-   .populate('user', ['username'])
+   .populate('user', ['username', 'isEnabled'])
    .select('-date');
   if (!profile) {
    return res.status(400).send('Aucun profil trouvé');

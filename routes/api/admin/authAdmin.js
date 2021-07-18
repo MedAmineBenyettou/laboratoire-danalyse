@@ -14,6 +14,8 @@ router.get('/', authAdmin, async (req, res) => {
   const admin = await Admin.findById(req.admin.id).select('-password');
   if (!admin)
    res.status(404).json({ errors: [{ msg: 'Utilisateur non trouvé' }] });
+  if (!admin.isEnabled)
+   res.status(403).json({ errors: [{ msg: 'Utilisateur desactivé' }] });
   return res.json(admin);
  } catch (err) {
   console.error(err.message);
@@ -43,9 +45,12 @@ router.put('/', authAdmin, async (req, res) => {
    authFields.username = username;
   }
   if (password) {
-   if (password.length >= 6) authFields.password = password;
-   else
-    res.status(400).json({
+   if (password.length >= 6) {
+    authFields.password = password;
+    const salt = await bc.genSalt(10);
+    authFields.password = await bc.hash(password, salt);
+   } else
+    return res.status(400).json({
      errors: [{ msg: 'Mot de passe doit contenir 6 caractères ou plus' }],
     });
   }
@@ -80,13 +85,12 @@ router.post(
   const { username, password } = req.body;
   try {
    let admin = await Admin.findOne({ username });
-
    if (!admin) {
     return res.status(400).json({
      errors: [{ msg: "Les informations d'identification sont invalides" }],
     });
    }
-
+   console.log(admin);
    const isMatch = await bc.compare(password, admin.password);
 
    if (!isMatch) {
@@ -94,6 +98,10 @@ router.post(
      errors: [{ msg: "Les informations d'identification sont invalides" }],
     });
    }
+   if (!admin.isEnabled)
+    return res.status(400).json({
+     errors: [{ msg: 'Compte desactivé' }],
+    });
    // JWT
    const payload = {
     admin: {

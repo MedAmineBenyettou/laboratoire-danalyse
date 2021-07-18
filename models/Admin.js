@@ -10,6 +10,10 @@ const AdminSchema = new mongoose.Schema({
   type: String,
   required: [true, 'Mot de passe requis'],
  },
+ isEnabled: {
+  type: Boolean,
+  default: true,
+ },
  date: {
   type: Date,
   default: Date.now,
