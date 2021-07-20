@@ -140,7 +140,6 @@ router.put('/:id', [auth], async (req, res) => {
  try {
   let profile = await Profile.findById(req.params.id);
   if (profile) {
-   //  console.log(user);
    //! Update
    if (user.username) {
     var admin = await Admin.findOne({ username: user.username });
@@ -161,7 +160,6 @@ router.put('/:id', [auth], async (req, res) => {
      });
     }
    }
-   //  console.log(user);
    await Admin.findByIdAndUpdate(profile.user, { $set: user }, { new: true });
    profile = await Profile.findByIdAndUpdate(
     req.params.id,

@@ -36,7 +36,8 @@ router.post(
    // Create
    gene = new Gene(fields);
    await gene.save();
-   return res.json(gene);
+   const genes = await Gene.find();
+   return res.json(genes);
   } catch (err) {
    console.error(err.message);
    return res.status(500).send({ msg: 'Erreur de serveur' });
@@ -60,7 +61,7 @@ router.put('/', authAdmin, async (req, res) => {
   if (gene) {
    return res
     .status(203)
-    .json({ errors: [{ msg: 'Ce type de gene existe deja.' }] });
+    .json({ errors: [{ msg: 'Ce type de gêne existe deja.' }] });
   }
 
   // Update
@@ -69,7 +70,8 @@ router.put('/', authAdmin, async (req, res) => {
    { $set: fields },
    { new: true }
   );
-  return res.json(gene);
+  const genes = await Gene.find();
+  return res.json(genes);
  } catch (err) {
   console.error(err.message);
   return res.status(500).send({ msg: 'Erreur de serveur' });
@@ -82,7 +84,6 @@ router.put('/', authAdmin, async (req, res) => {
 router.get('/', authAny, async (req, res) => {
  try {
   let types = await Gene.find();
-  if (!types) return res.json([]);
 
   return res.json(types);
  } catch (err) {

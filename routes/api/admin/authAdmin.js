@@ -59,7 +59,6 @@ router.put('/', authAdmin, async (req, res) => {
    { $set: authFields },
    { new: true }
   ).select('-password');
-  console.log(authFields, admin);
   return res.json(admin);
  } catch (err) {
   console.error(err.message);
@@ -90,7 +89,6 @@ router.post(
      errors: [{ msg: "Les informations d'identification sont invalides" }],
     });
    }
-   console.log(admin);
    const isMatch = await bc.compare(password, admin.password);
 
    if (!isMatch) {
