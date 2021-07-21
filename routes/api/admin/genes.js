@@ -48,7 +48,7 @@ router.post(
 // @route   POST api/admin/genes/:id
 // @desc    Updates a gene
 // @access  Private
-router.put('/', authAdmin, async (req, res) => {
+router.put('/:id', authAdmin, async (req, res) => {
  const { nom, description } = req.body;
 
  // Build object
@@ -57,12 +57,15 @@ router.put('/', authAdmin, async (req, res) => {
  if (description) fields.description = description;
 
  try {
-  let gene = await Gene.findOne({ nom });
-  if (gene) {
+  let gene = await Gene.findById(req.params.id);
+  if (!gene)
+   return res.status(404).json({ errors: [{ msg: 'Gêne non trouvé' }] });
+
+  let gene2 = await Gene.findOne({ nom });
+  if (gene2 && gene2.nom === nom && !req.params.id.match(gene2._id))
    return res
-    .status(203)
-    .json({ errors: [{ msg: 'Ce type de gêne existe deja.' }] });
-  }
+    .status(403)
+    .json({ errors: [{ msg: 'Un gêne avec le même nom éxiste dèja' }] });
 
   // Update
   gene = await Gene.findByIdAndUpdate(
@@ -70,6 +73,7 @@ router.put('/', authAdmin, async (req, res) => {
    { $set: fields },
    { new: true }
   );
+  console.log(gene);
   const genes = await Gene.find();
   return res.json(genes);
  } catch (err) {
