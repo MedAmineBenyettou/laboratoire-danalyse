@@ -73,7 +73,7 @@ router.put('/:id', authAdmin, async (req, res) => {
    { $set: fields },
    { new: true }
   );
-  console.log(gene);
+  // console.log(gene);
   const genes = await Gene.find();
   return res.json(genes);
  } catch (err) {
@@ -90,6 +90,20 @@ router.get('/', authAny, async (req, res) => {
   let types = await Gene.find();
 
   return res.json(types);
+ } catch (err) {
+  console.error(err.message);
+  return res.status(500).send({ msg: 'Erreur de serveur' });
+ }
+});
+
+// @route   DELETE api/admin/genes/:id
+// @desc    Deletes a gene
+// @access  Private
+router.delete('/:id', authAny, async (req, res) => {
+ try {
+  await Gene.findByIdAndRemove(req.params.id);
+  const genes = await Gene.find();
+  return res.json(genes);
  } catch (err) {
   console.error(err.message);
   return res.status(500).send({ msg: 'Erreur de serveur' });
