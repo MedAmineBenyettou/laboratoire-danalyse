@@ -17,7 +17,7 @@ router.post(
   if (!errors.isEmpty()) {
    return res.status(400).json({ errors: errors.array() });
   }
-
+  // console.log(req.body);
   const { nom, description, genes } = req.body;
 
   // Build object
@@ -30,25 +30,26 @@ router.post(
    let analyseType = await AnalyseType.findOne({ nom });
    if (analyseType) {
     return res
-     .status(203)
+     .status(400)
      .json({ errors: [{ msg: "Ce type d'analyse existe deja." }] });
    }
 
    // Create
    analyseType = new AnalyseType(fields);
    await analyseType.save();
-   return res.json(analyseType);
+   const types = await AnalyseType.find().populate('genes').exec();
+   return res.json(types);
   } catch (err) {
    console.error(err.message);
-   res.status(500).send('Erreur de serveur');
+   res.status(500).send({ msg: 'Erreur de serveur' });
   }
  }
 );
 
-// @route   POST api/analyseTypes/:id
+// @route   PUT api/analyseTypes/:id
 // @desc    Updates a type
 // @access  Private
-router.put('/', authAdmin, async (req, res) => {
+router.put('/:id', authAdmin, async (req, res) => {
  const { nom, description, genes } = req.body;
 
  // Build object
@@ -58,12 +59,19 @@ router.put('/', authAdmin, async (req, res) => {
  if (genes) fields.genes = genes;
 
  try {
-  let analyseType = await AnalyseType.findOne({ nom });
-  if (analyseType) {
+  let analyseType = await AnalyseType.findById(req.params.id);
+  if (!analyseType)
+   return res.status(404).json({ errors: [{ msg: 'Type non trouvé' }] });
+
+  let analyseType2 = await AnalyseType.findOne({ nom });
+  if (
+   analyseType2 &&
+   analyseType2.nom === nom &&
+   !req.params.id.match(analyseType2._id)
+  )
    return res
-    .status(203)
-    .json({ errors: [{ msg: "Ce type d'analyse existe deja." }] });
-  }
+    .status(400)
+    .json({ errors: [{ msg: 'Un type avec le même nom éxiste dèja' }] });
 
   // Update
   analyseType = await AnalyseType.findByIdAndUpdate(
@@ -71,10 +79,11 @@ router.put('/', authAdmin, async (req, res) => {
    { $set: fields },
    { new: true }
   );
-  return res.json(analyseType);
+  const types = await AnalyseType.find().populate('genes').exec();
+  return res.json(types);
  } catch (err) {
   console.error(err.message);
-  res.status(500).send('Erreur de serveur');
+  res.status(500).send({ msg: 'Erreur de serveur' });
  }
 });
 
@@ -83,14 +92,25 @@ router.put('/', authAdmin, async (req, res) => {
 // @access  Private
 router.get('/', authAny, async (req, res) => {
  try {
-  let types = await AnalyseType.find();
-  if (!types) {
-   return res.status(500).send('Erreur de serveur');
-  }
+  let types = await AnalyseType.find().populate('genes').exec();
   return res.json(types);
  } catch (err) {
   console.error(err.message);
-  return res.status(500).send('Erreur de serveur');
+  return res.status(500).send({ msg: 'Erreur de serveur' });
+ }
+});
+
+// @route   DELETE api/analyseTypes/:id
+// @desc    Deletes a type
+// @access  Private
+router.delete('/:id', authAny, async (req, res) => {
+ try {
+  await AnalyseType.findByIdAndRemove(req.params.id);
+  const types = await AnalyseType.find().populate('genes').exec();
+  return res.json(types);
+ } catch (err) {
+  console.error(err.message);
+  return res.status(500).send({ msg: 'Erreur de serveur' });
  }
 });
 

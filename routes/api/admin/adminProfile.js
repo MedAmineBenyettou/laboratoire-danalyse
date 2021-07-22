@@ -41,7 +41,7 @@ router.post('/', auth, async (req, res) => {
   let profile = await Profile.findOne({ user: req.admin.id });
   if (profile) {
    return res
-    .status(203)
+    .status(400)
     .json({ errors: [{ msg: 'Profile already exists...' }] });
   }
 
@@ -72,7 +72,7 @@ router.post('/:id', auth, async (req, res) => {
   let profile = await Profile.findOne({ user: profileFields.user });
   if (profile) {
    return res
-    .status(203)
+    .status(400)
     .json({ errors: [{ msg: 'Profile already exists...' }] });
   }
 

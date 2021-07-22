@@ -64,7 +64,7 @@ router.put('/:id', authAdmin, async (req, res) => {
   let gene2 = await Gene.findOne({ nom });
   if (gene2 && gene2.nom === nom && !req.params.id.match(gene2._id))
    return res
-    .status(403)
+    .status(400)
     .json({ errors: [{ msg: 'Un gêne avec le même nom éxiste dèja' }] });
 
   // Update

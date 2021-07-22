@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { GeneSchema, Gene } = require('./Gene');
+const { GeneSchema } = require('./Gene');
 
 const AnalyseTypeSchema = new mongoose.Schema({
  nom: {
@@ -11,7 +11,12 @@ const AnalyseTypeSchema = new mongoose.Schema({
   type: String,
   default: '',
  },
- genes: [GeneSchema],
+ genes: [
+  {
+   type: mongoose.Schema.Types.ObjectId,
+   ref: 'gene',
+  },
+ ],
  date: {
   type: Date,
   default: Date.now,
