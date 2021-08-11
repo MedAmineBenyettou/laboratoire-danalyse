@@ -17,11 +17,11 @@ const UserProfileSchema = new mongoose.Schema({
  },
  dateOfBirth: {
   type: Date,
-  required: [true, 'Le lieu de naissance est requis'],
+  required: [true, 'La date de naissance est requise'],
  },
  birthLocation: {
   type: String,
-  required: [true, 'location not provided'],
+  required: [true, 'Le lieu de naissance est requis'],
  },
  adresse: {
   type: String,
