@@ -30,7 +30,6 @@ const UserProfileSchema = new mongoose.Schema({
  phoneNumber: {
   type: mongoose.Schema.Types.Number,
   required: [true, 'Un numéro de téléphone est requis'],
-  unique: true,
  },
  date: {
   type: Date,

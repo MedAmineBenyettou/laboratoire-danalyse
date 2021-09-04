@@ -27,55 +27,55 @@ router.get('/me', auth, async (req, res) => {
 // @route   POST api/profile
 // @desc    Create user profile
 // @access  Private
-router.post(
- '/',
- auth,
- [
-  [
-   check('dateOfBirth', 'Une date de naissance est requise').not().isEmpty(),
-   check('phoneNumber', 'Un numéro de téléphone est requis').not().isEmpty(),
-   check('birthLocation', 'Le lieu de naissance est requis').not().isEmpty(),
-   check('adresse', "L'adresse est requise").not().isEmpty(),
-   check('nom', 'Le nom est requis').not().isEmpty(),
-   check('prenom', 'Le prenom est requis').not().isEmpty(),
-  ],
- ],
- async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-   return res.status(400).json({ errors: errors.array() });
-  }
+// router.post(
+//  '/',
+//  auth,
+//  [
+//   [
+//    check('dateOfBirth', 'Une date de naissance est requise').not().isEmpty(),
+//    check('phoneNumber', 'Un numéro de téléphone est requis').not().isEmpty(),
+//    check('birthLocation', 'Le lieu de naissance est requis').not().isEmpty(),
+//    check('adresse', "L'adresse est requise").not().isEmpty(),
+//    check('nom', 'Le nom est requis').not().isEmpty(),
+//    check('prenom', 'Le prenom est requis').not().isEmpty(),
+//   ],
+//  ],
+//  async (req, res) => {
+//   const errors = validationResult(req);
+//   if (!errors.isEmpty()) {
+//    return res.status(400).json({ errors: errors.array() });
+//   }
 
-  const { prenom, nom, dateOfBirth, birthLocation, adresse, phoneNumber } =
-   req.body;
-  // Build Profile object
-  const profileFields = {};
-  profileFields.user = req.user.id;
-  profileFields.prenom = prenom;
-  profileFields.nom = nom;
-  profileFields.dateOfBirth = Date(dateOfBirth);
-  profileFields.birthLocation = birthLocation;
-  profileFields.adresse = adresse;
-  profileFields.phoneNumber = phoneNumber;
+//   const { prenom, nom, dateOfBirth, birthLocation, adresse, phoneNumber } =
+//    req.body;
+//   // Build Profile object
+//   const profileFields = {};
+//   profileFields.user = req.user.id;
+//   profileFields.prenom = prenom;
+//   profileFields.nom = nom;
+//   profileFields.dateOfBirth = Date(dateOfBirth);
+//   profileFields.birthLocation = birthLocation;
+//   profileFields.adresse = adresse;
+//   profileFields.phoneNumber = phoneNumber;
 
-  try {
-   let profile = await Profile.findOne({ user: req.user.id });
-   if (profile) {
-    return res
-     .status(203)
-     .json({ errors: [{ msg: 'Profile already exists...' }] });
-   }
+//   try {
+//    let profile = await Profile.findOne({ user: req.user.id });
+//    if (profile) {
+//     return res
+//      .status(203)
+//      .json({ errors: [{ msg: 'Profile already exists...' }] });
+//    }
 
-   // Create
-   profile = new Profile(profileFields);
-   await profile.save();
-   return res.json(profile);
-  } catch (err) {
-   console.error(err.message);
-   res.status(500).send('Server Error');
-  }
- }
-);
+//    // Create
+//    profile = new Profile(profileFields);
+//    await profile.save();
+//    return res.json(profile);
+//   } catch (err) {
+//    console.error(err.message);
+//    res.status(500).send('Server Error');
+//   }
+//  }
+// );
 
 // @route   PUT api/profile
 // @desc    Update user profile
