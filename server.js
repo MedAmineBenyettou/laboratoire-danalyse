@@ -16,6 +16,7 @@ app.use('/api/users', require('./routes/api/users'));
 app.use('/api/auth', require('./routes/api/auth'));
 app.use('/api/profile', require('./routes/api/profile'));
 app.use('/api/analyseTypes', require('./routes/api/analyseTypes'));
+app.use('/api/analyse', require('./routes/api/analyses'));
 
 //* For Admins:
 app.use('/api/admin/auth', require('./routes/api/admin/authAdmin'));
