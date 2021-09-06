@@ -1,7 +1,11 @@
 const express = require('express');
 const Profile = require('../../models/UserProfile');
 const auth = require('../../middlewares/auth');
-const { check, validationResult } = require('express-validator');
+const authAny = require('../../middlewares/authAny');
+const authAdmin = require('../../middlewares/authAdmin');
+const bc = require('bcryptjs');
+const User = require('../../models/User');
+// const { check, validationResult } = require('express-validator');
 const router = express.Router();
 
 // @route   GET api/profile/me
@@ -24,63 +28,10 @@ router.get('/me', auth, async (req, res) => {
  }
 });
 
-// @route   POST api/profile
-// @desc    Create user profile
-// @access  Private
-// router.post(
-//  '/',
-//  auth,
-//  [
-//   [
-//    check('dateOfBirth', 'Une date de naissance est requise').not().isEmpty(),
-//    check('phoneNumber', 'Un numéro de téléphone est requis').not().isEmpty(),
-//    check('birthLocation', 'Le lieu de naissance est requis').not().isEmpty(),
-//    check('adresse', "L'adresse est requise").not().isEmpty(),
-//    check('nom', 'Le nom est requis').not().isEmpty(),
-//    check('prenom', 'Le prenom est requis').not().isEmpty(),
-//   ],
-//  ],
-//  async (req, res) => {
-//   const errors = validationResult(req);
-//   if (!errors.isEmpty()) {
-//    return res.status(400).json({ errors: errors.array() });
-//   }
-
-//   const { prenom, nom, dateOfBirth, birthLocation, adresse, phoneNumber } =
-//    req.body;
-//   // Build Profile object
-//   const profileFields = {};
-//   profileFields.user = req.user.id;
-//   profileFields.prenom = prenom;
-//   profileFields.nom = nom;
-//   profileFields.dateOfBirth = Date(dateOfBirth);
-//   profileFields.birthLocation = birthLocation;
-//   profileFields.adresse = adresse;
-//   profileFields.phoneNumber = phoneNumber;
-
-//   try {
-//    let profile = await Profile.findOne({ user: req.user.id });
-//    if (profile) {
-//     return res
-//      .status(203)
-//      .json({ errors: [{ msg: 'Profile already exists...' }] });
-//    }
-
-//    // Create
-//    profile = new Profile(profileFields);
-//    await profile.save();
-//    return res.json(profile);
-//   } catch (err) {
-//    console.error(err.message);
-//    res.status(500).send('Server Error');
-//   }
-//  }
-// );
-
 // @route   PUT api/profile
 // @desc    Update user profile
 // @access  Private
-router.put('/', [auth], async (req, res) => {
+router.put('/', auth, async (req, res) => {
  const { form, settings, lists, social } = req.body;
  if (!form && !settings && !lists && !social) {
   return res.status(400).json({ errors: [{ msg: 'Bad request' }] });
@@ -120,10 +71,136 @@ router.put('/', [auth], async (req, res) => {
  }
 });
 
+// @route   PUT api/profile/:id
+// @desc    Update user profile by id
+// @access  Private
+router.put('/:id', [authAdmin], async (req, res) => {
+ const { prenom, nom, dateOfBirth, birthLocation, adresse, phoneNumber, user } =
+  req.body;
+
+ // Build Profile object
+ const profileFields = {};
+ if (prenom) profileFields.prenom = prenom;
+ if (nom) profileFields.nom = nom;
+ if (dateOfBirth) profileFields.dateOfBirth = dateOfBirth;
+ if (birthLocation) profileFields.birthLocation = birthLocation;
+ if (adresse) profileFields.adresse = adresse;
+ if (phoneNumber) profileFields.phoneNumber = phoneNumber;
+
+ try {
+  let profile = await Profile.findById(req.params.id);
+  if (profile) {
+   //! Update
+   if (user.username) {
+    var ouser = await User.findOne({ username: user.username });
+    if (ouser)
+     return res.status(404).json({
+      errors: [{ msg: "Un utilisateur avec le meme 'email' existe deja" }],
+     });
+   }
+   if (user.password) {
+    if (user.password.length >= 6) {
+     const salt = await bc.genSalt(10);
+     user.password = await bc.hash(user.password, salt);
+    } else {
+     return res.status(400).json({
+      errors: [{ msg: 'Mot de passe doit contenir 6 caractères ou plus' }],
+     });
+    }
+   }
+   await User.findByIdAndUpdate(profile.user, { $set: user }, { new: true });
+   profile = await Profile.findByIdAndUpdate(
+    req.params.id,
+    { $set: profileFields },
+    { new: true }
+   );
+   let profiles = await Profile.find().populate('user', [
+    'username',
+    'isEnabled',
+   ]);
+   return res.json(profiles);
+  }
+
+  return res.status(404).json({
+   errors: [{ msg: 'Aucun utilisateur trouvé' }],
+  });
+ } catch (err) {
+  // console.error(err);
+  console.error(err.message);
+  res.status(500).send('Erreur de serveur');
+ }
+});
+
+// router.put('/:id', authAdmin, async (req, res) => {
+//  // Build Profile object
+//  const profileFields = {};
+//  const profileFieldsUser = {};
+//  profileFields.user = req.params.id;
+
+//  const {
+//   prenom,
+//   nom,
+//   dateOfBirth,
+//   birthLocation,
+//   adresse,
+//   phoneNumber,
+//   password,
+//   email,
+//  } = req.body;
+//  if (prenom) profileFields.prenom = prenom;
+//  if (nom) profileFields.nom = nom;
+//  if (dateOfBirth) profileFields.dateOfBirth = dateOfBirth;
+//  if (birthLocation) profileFields.birthLocation = birthLocation;
+//  if (adresse) profileFields.adresse = adresse;
+//  if (phoneNumber) profileFields.phoneNumber = phoneNumber;
+//  if (password) {
+//   if (password.length >= 6) {
+//    const salt = await bc.genSalt(10);
+//    profileFieldsUser.password = await bc.hash(password, salt);
+//   } else {
+//    return res.status(400).json({
+//     errors: [{ msg: 'Mot de passe doit contenir 6 caractères ou plus' }],
+//    });
+//   }
+//  }
+//  if (email) {
+//   var ouser = await User.findOne({ email });
+//   if (ouser)
+//    return res.status(404).json({
+//     errors: [{ msg: "Un utilisateur avec le meme 'email' existe deja" }],
+//    });
+//   profileFieldsUser.email = email;
+//  }
+
+//  try {
+//   let profile = await Profile.findById(req.params.id);
+//   if (profile) {
+//    //! Update
+//    await User.findByIdAndUpdate(
+//     profile.user,
+//     { $set: profileFieldsUser },
+//     { new: true }
+//    );
+//    profile = await Profile.findByIdAndUpdate(
+//     req.params.id,
+//     { $set: profileFields },
+//     { new: true }
+//    ).populate('user', ['email']);
+//    return res.json(profile);
+//   }
+
+//   // new user error
+//   throw new Error({ message: 'No user found...' });
+//  } catch (err) {
+//   console.error(err.message);
+//   res.status(500).send('Serer Error');
+//  }
+// });
+
 // @route   GET api/profile
 // @desc    Get all profiles
 // @access  Private
-router.get('/', auth, async (req, res) => {
+router.get('/', authAny, async (req, res) => {
  try {
   let profiles = await Profile.find().populate('user', ['email']);
   if (!profiles) {
@@ -139,7 +216,7 @@ router.get('/', auth, async (req, res) => {
 // @route   GET api/profile/:user_id
 // @desc    Get profile by user ID
 // @access  Private
-router.get('/:user_id', auth, async (req, res) => {
+router.get('/:user_id', authAny, async (req, res) => {
  try {
   const profile = await Profile.findOne({ user: req.params.user_id })
    .populate('user', ['email'])
