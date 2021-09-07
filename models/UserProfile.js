@@ -28,7 +28,7 @@ const UserProfileSchema = new mongoose.Schema({
   required: [true, "L'adresse est requise"],
  },
  phoneNumber: {
-  type: mongoose.Schema.Types.Number,
+  type: String,
   required: [true, 'Un numéro de téléphone est requis'],
  },
  date: {

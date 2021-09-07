@@ -45,15 +45,15 @@ router.post('/', authAdmin, async (req, res) => {
 
  try {
   const fields = {};
-  fields.user = (await AdminProfile.findById(req.admin.id))._id;
+  fields.user = (await AdminProfile.findOne({ user: req.admin.id }))._id;
   if (description) fields.description = description;
   if (locationDePrelevement)
    fields.locationDePrelevement = locationDePrelevement;
   if (type) fields.type = type;
   if (patient) fields.patient = patient;
   if (notes) fields.notes = notes;
-  if (etat) fields.etat = etat;
-  if (positive) fields.positive = positive;
+  if (etat !== undefined) fields.etat = etat;
+  if (positive !== undefined) fields.positive = positive;
   // Create
   var analyse = new Analyse(fields);
   await analyse.save();
@@ -81,7 +81,7 @@ router.put('/:id', authAdmin, async (req, res) => {
 
  // Build object
  const fields = {};
- fields.user = req.admin.id;
+ fields.user = (await AdminProfile.findOne({ user: req.admin.id }))._id;
  if (description) fields.description = description;
  if (locationDePrelevement)
   fields.locationDePrelevement = locationDePrelevement;

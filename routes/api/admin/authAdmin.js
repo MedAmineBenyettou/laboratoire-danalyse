@@ -72,7 +72,7 @@ router.put('/', authAdmin, async (req, res) => {
 router.post(
  '/',
  [
-  check('username', 'Veuillez inclure un e-mail valide').notEmpty(),
+  check('username', "Un nom d'utilisateur est requis").notEmpty(),
   check('password', 'Mot de passe requis').exists(),
  ],
  async (req, res) => {
