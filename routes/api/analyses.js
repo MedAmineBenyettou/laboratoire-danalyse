@@ -1,6 +1,7 @@
 const express = require('express');
 const authAdmin = require('../../middlewares/authAdmin');
 const authAny = require('../../middlewares/authAny');
+const AdminProfile = require('../../models/AdminProfile');
 const Analyse = require('../../models/Analyse');
 const router = express.Router();
 
@@ -11,11 +12,17 @@ const analyseQuery = [
  },
  {
   path: 'patient',
-  select: '-password',
+  populate: {
+   path: 'user',
+   select: '-password',
+  },
  },
  {
   path: 'user',
-  select: '-password',
+  populate: {
+   path: 'user',
+   select: '-password',
+  },
  },
 ];
 
@@ -35,18 +42,18 @@ router.post('/', authAdmin, async (req, res) => {
  } = req.body;
 
  // Build object
- const fields = {};
- fields.user = req.admin.id;
- if (description) fields.description = description;
- if (locationDePrelevement)
-  fields.locationDePrelevement = locationDePrelevement;
- if (type) fields.type = type;
- if (patient) fields.patient = patient;
- if (notes) fields.notes = notes;
- if (etat) fields.etat = etat;
- if (positive) fields.positive = positive;
 
  try {
+  const fields = {};
+  fields.user = (await AdminProfile.findById(req.admin.id))._id;
+  if (description) fields.description = description;
+  if (locationDePrelevement)
+   fields.locationDePrelevement = locationDePrelevement;
+  if (type) fields.type = type;
+  if (patient) fields.patient = patient;
+  if (notes) fields.notes = notes;
+  if (etat) fields.etat = etat;
+  if (positive) fields.positive = positive;
   // Create
   var analyse = new Analyse(fields);
   await analyse.save();
@@ -81,8 +88,8 @@ router.put('/:id', authAdmin, async (req, res) => {
  if (type) fields.type = type;
  if (patient) fields.patient = patient;
  if (notes) fields.notes = notes;
- if (etat) fields.etat = etat;
- if (positive) fields.positive = positive;
+ if (etat !== undefined) fields.etat = etat;
+ if (positive !== undefined) fields.positive = positive;
 
  try {
   let analyse = await Analyse.findById(req.params.id);
