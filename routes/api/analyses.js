@@ -57,7 +57,10 @@ router.post('/', authAdmin, async (req, res) => {
   // Create
   var analyse = new Analyse(fields);
   await analyse.save();
-  const analyses = await Analyse.find().populate(analyseQuery).exec();
+  const analyses = await await Analyse.find()
+   .sort('-date')
+   .populate(analyseQuery)
+   .exec();
   return res.json(analyses);
  } catch (err) {
   console.error(err.message);
@@ -102,7 +105,10 @@ router.put('/:id', authAdmin, async (req, res) => {
    { $set: fields },
    { new: true }
   );
-  const analyses = await Analyse.find().populate(analyseQuery).exec();
+  const analyses = await await Analyse.find()
+   .sort('-date')
+   .populate(analyseQuery)
+   .exec();
   return res.json(analyses);
  } catch (err) {
   console.error(err.message);
@@ -115,7 +121,10 @@ router.put('/:id', authAdmin, async (req, res) => {
 // @access  Private
 router.get('/', authAny, async (req, res) => {
  try {
-  let analyses = await Analyse.find().populate(analyseQuery).exec();
+  let analyses = await await Analyse.find()
+   .sort('-date')
+   .populate(analyseQuery)
+   .exec();
   return res.json(analyses);
  } catch (err) {
   console.error(err.message);
@@ -129,7 +138,10 @@ router.get('/', authAny, async (req, res) => {
 router.delete('/:id', authAdmin, async (req, res) => {
  try {
   await Analyse.findByIdAndRemove(req.params.id);
-  const types = await Analyse.find().populate(analyseQuery).exec();
+  const types = await await Analyse.find()
+   .sort('-date')
+   .populate(analyseQuery)
+   .exec();
   return res.json(types);
  } catch (err) {
   console.error(err.message);
