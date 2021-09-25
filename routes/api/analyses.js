@@ -57,11 +57,28 @@ router.post('/', authAdmin, async (req, res) => {
   // Create
   var analyse = new Analyse(fields);
   await analyse.save();
-  const analyses = await await Analyse.find()
-   .sort('-date')
-   .populate(analyseQuery)
-   .exec();
-  return res.json(analyses);
+  let temps = await Analyse.paginate(
+   {},
+   {
+    sort: { date: -1 },
+    limit: 15,
+    page: req.query.page,
+    populate: analyseQuery,
+    pagination: req.query.page && req.query.page > 0,
+   }
+  );
+  temps = {
+   data: temps.docs,
+   params: {
+    totalDocs: temps.totalDocs,
+    totalPages: temps.totalPages,
+    limit: temps.limit,
+    page: temps.page,
+    nextPage: temps.nextPage,
+    prevPage: temps.prevPage,
+   },
+  };
+  return res.json(temps);
  } catch (err) {
   console.error(err.message);
   res.status(500).send({ msg: 'Erreur de serveur' });
@@ -105,11 +122,28 @@ router.put('/:id', authAdmin, async (req, res) => {
    { $set: fields },
    { new: true }
   );
-  const analyses = await await Analyse.find()
-   .sort('-date')
-   .populate(analyseQuery)
-   .exec();
-  return res.json(analyses);
+  let temps = await Analyse.paginate(
+   {},
+   {
+    sort: { date: -1 },
+    limit: 15,
+    page: req.query.page,
+    populate: analyseQuery,
+    pagination: req.query.page && req.query.page > 0,
+   }
+  );
+  temps = {
+   data: temps.docs,
+   params: {
+    totalDocs: temps.totalDocs,
+    totalPages: temps.totalPages,
+    limit: temps.limit,
+    page: temps.page,
+    nextPage: temps.nextPage,
+    prevPage: temps.prevPage,
+   },
+  };
+  return res.json(temps);
  } catch (err) {
   console.error(err.message);
   res.status(500).send({ msg: 'Erreur de serveur' });
@@ -120,12 +154,30 @@ router.put('/:id', authAdmin, async (req, res) => {
 // @desc    Get all Analyses
 // @access  Private
 router.get('/', authAny, async (req, res) => {
+ //*  console.log(req.query);
  try {
-  let analyses = await await Analyse.find()
-   .sort('-date')
-   .populate(analyseQuery)
-   .exec();
-  return res.json(analyses);
+  let temps = await Analyse.paginate(
+   {},
+   {
+    sort: { date: -1 },
+    limit: 15,
+    page: req.query.page,
+    populate: analyseQuery,
+    pagination: req.query.page && req.query.page > 0,
+   }
+  );
+  temps = {
+   data: temps.docs,
+   params: {
+    totalDocs: temps.totalDocs,
+    totalPages: temps.totalPages,
+    limit: temps.limit,
+    page: temps.page,
+    nextPage: temps.nextPage,
+    prevPage: temps.prevPage,
+   },
+  };
+  return res.json(temps);
  } catch (err) {
   console.error(err.message);
   return res.status(500).send({ msg: 'Erreur de serveur' });
@@ -138,11 +190,28 @@ router.get('/', authAny, async (req, res) => {
 router.delete('/:id', authAdmin, async (req, res) => {
  try {
   await Analyse.findByIdAndRemove(req.params.id);
-  const types = await await Analyse.find()
-   .sort('-date')
-   .populate(analyseQuery)
-   .exec();
-  return res.json(types);
+  let temps = await Analyse.paginate(
+   {},
+   {
+    sort: { date: -1 },
+    limit: 15,
+    page: req.query.page,
+    populate: analyseQuery,
+    pagination: req.query.page && req.query.page > 0,
+   }
+  );
+  temps = {
+   data: temps.docs,
+   params: {
+    totalDocs: temps.totalDocs,
+    totalPages: temps.totalPages,
+    limit: temps.limit,
+    page: temps.page,
+    nextPage: temps.nextPage,
+    prevPage: temps.prevPage,
+   },
+  };
+  return res.json(temps);
  } catch (err) {
   console.error(err.message);
   return res.status(500).send({ msg: 'Erreur de serveur' });

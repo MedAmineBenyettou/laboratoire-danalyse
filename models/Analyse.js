@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 
 const AnalyseSchema = new mongoose.Schema({
  locationDePrelevement: {
@@ -43,5 +44,7 @@ const AnalyseSchema = new mongoose.Schema({
   default: Date.now,
  },
 });
+
+AnalyseSchema.plugin(mongoosePaginate);
 
 module.exports = Analyse = mongoose.model('analyse', AnalyseSchema);
